@@ -1,0 +1,52 @@
+{
+  "resource": "/data",
+  "path": "/data",
+  "httpMethod": "GET",
+  "headers": {
+    "CloudFront-Forwarded-Proto": "https",
+    "CloudFront-Is-Desktop-Viewer": "true",
+    "CloudFront-Is-Mobile-Viewer": "false",
+    "CloudFront-Is-SmartTV-Viewer": "false",
+    "CloudFront-Is-Tablet-Viewer": "false",
+    "CloudFront-Viewer-Country": "US",
+    "Host": "fwuklm43r6.execute-api.us-east-1.amazonaws.com",
+    "User-Agent": "Paw/3.1.2 (Macintosh; OS X/10.13.0) GCDHTTPRequest",
+    "Via": "1.1 29873a15bd1c7b0263b071d01eefe3c5.cloudfront.net (CloudFront)",
+    "X-Amz-Cf-Id": "B_P2q2Hh9Rndm4wh0FNRhei_5zmBrcOjwZvoqmAW1QyfrB-9idhRHQ==",
+    "X-Amzn-Trace-Id": "Root=1-59fe4afb-5f855251281a028e6fe26585",
+    "x-customer-id": "d4148027-d528-4f63-b00b-c782022b5eb4",
+    "X-Forwarded-For": "68.98.226.91, 216.137.44.163",
+    "X-Forwarded-Port": "443",
+    "X-Forwarded-Proto": "https",
+    "x-serial-number": "C45200033"
+  },
+  "queryStringParameters": null,
+  "pathParameters": null,
+  "stageVariables": null,
+  "requestContext": {
+    "path": "/dev/data",
+    "accountId": "499155668448",
+    "resourceId": "ts69uh",
+    "stage": "dev",
+    "requestId": "97f67784-c1b6-11e7-85ce-c3cfd7bccdcf",
+    "identity": {
+      "cognitoIdentityPoolId": null,
+      "accountId": null,
+      "cognitoIdentityId": null,
+      "caller": null,
+      "apiKey": "",
+      "sourceIp": "68.98.226.91",
+      "accessKey": null,
+      "cognitoAuthenticationType": null,
+      "cognitoAuthenticationProvider": null,
+      "userArn": null,
+      "userAgent": "Paw/3.1.2 (Macintosh; OS X/10.13.0) GCDHTTPRequest",
+      "user": null
+    },
+    "resourcePath": "/data",
+    "httpMethod": "GET",
+    "apiId": "fwuklm43r6"
+  },
+  "body": null,
+  "isBase64Encoded": false
+}

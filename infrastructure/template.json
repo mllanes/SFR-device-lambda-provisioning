@@ -1,0 +1,330 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Infrastructure associated with the provisioning of a new SFR device (raspberry Pi with pressure sensors)",
+  "Parameters": {
+    "Env": {
+      "Type": "String",
+      "Description": "Environment",
+      "Default": "dev"
+    }
+  },
+  "Resources": {
+    "FunctionExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "sfr-lambda-data-access-provisioning",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "sfr-lambda-data-access-provisioning",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "iot:*"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "FunctionLogGroup",
+                      "Arn"
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:PutItem"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "DevicesTable",
+                      "Arn"
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:Query"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PressureDataSamples"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "Function": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "FunctionName": "sfr-lambda-data-access-provisioning",
+        "MemorySize": 1536,
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "FunctionExecutionRole",
+            "Arn"
+          ]
+        },
+        "Code": {
+          "S3Bucket": "sfr-lambda-data-access-provisioning",
+          "S3Key": "code.zip"
+        },
+        "Runtime": "nodejs6.10",
+        "Timeout": 180,
+        "Environment": {
+          "Variables": {
+            "NODE_ENV": {
+              "Ref": "Env"
+            },
+            "PROVISIONED_AWS_REGION": {
+              "Ref": "AWS::Region"
+            }
+          }
+        }
+      }
+    },
+    "FunctionLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Sub": [
+            "/aws/lambda/${FunctionName}",
+            {
+              "FunctionName": "sfr-lambda-data-access-provisioning"
+            }
+          ]
+        },
+        "RetentionInDays": 7
+      }
+    },
+    "LambdaPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:invokeFunction",
+        "FunctionName": {
+          "Ref": "Function"
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ProvisioningApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "ProvisioningApi": {
+      "Type": "AWS::ApiGateway::RestApi",
+      "Properties": {
+        "Name": "sfr-api",
+        "Description": "SFR devices provisioning API",
+        "FailOnWarnings": true
+      }
+    },
+    "GetConfigAndCertsFilesUrlsResource": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "ProvisioningApi"
+        },
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ProvisioningApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "files"
+      }
+    },
+    "CollectedDataAccessResource": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "ProvisioningApi"
+        },
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ProvisioningApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "data"
+      }
+    },
+    "GetConfigAndCertsFilesUrlsMethod": {
+      "Type": "AWS::ApiGateway::Method",
+      "DependsOn": "LambdaPermission",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "ProvisioningApi"
+        },
+        "ResourceId": {
+          "Ref": "GetConfigAndCertsFilesUrlsResource"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Function.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "CollectedDataAccessMethod": {
+      "Type": "AWS::ApiGateway::Method",
+      "DependsOn": "LambdaPermission",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "ProvisioningApi"
+        },
+        "ResourceId": {
+          "Ref": "CollectedDataAccessResource"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Function.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Deployment": {
+      "DependsOn": "GetConfigAndCertsFilesUrlsMethod",
+      "Type": "AWS::ApiGateway::Deployment",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "ProvisioningApi"
+        },
+        "Description": "Api Deployment",
+        "StageName": {
+          "Ref": "Env"
+        }
+      }
+    },
+    "SensorsIoTPolicy": {
+      "Type": "AWS::IoT::Policy",
+      "Properties": {
+        "PolicyName": "SFR-sensors",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "iot:Publish",
+                "iot:Subscribe",
+                "iot:Connect",
+                "iot:Receive"
+              ],
+              "Resource": [
+                "*"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "DevicesTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "Devices",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "customerId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "serialNumber",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "customerId",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "serialNumber",
+            "KeyType": "RANGE"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 2,
+          "WriteCapacityUnits": 2
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "SFRApiBaseURL": {
+      "Description": "SFRApiBaseURL environment value needed when running SFR-device data collection simulations",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "ProvisioningApi"
+            },
+            ".execute-api.",
+            {
+              "Ref": "AWS::Region"
+            },
+            ".amazonaws.com",
+            "/",
+            {
+              "Ref": "Env"
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

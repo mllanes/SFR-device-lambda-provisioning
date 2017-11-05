@@ -1,0 +1,52 @@
+{
+  "resource": "/files",
+  "path": "/files",
+  "httpMethod": "GET",
+  "headers": {
+    "CloudFront-Forwarded-Proto": "https",
+    "CloudFront-Is-Desktop-Viewer": "true",
+    "CloudFront-Is-Mobile-Viewer": "false",
+    "CloudFront-Is-SmartTV-Viewer": "false",
+    "CloudFront-Is-Tablet-Viewer": "false",
+    "CloudFront-Viewer-Country": "US",
+    "Host": "wfnusiwu5a.execute-api.us-east-1.amazonaws.com",
+    "User-Agent": "Paw/3.1.5 (Macintosh; OS X/10.13.0) GCDHTTPRequest",
+    "Via": "1.1 9c49cf68cf2287c443a3527dd202d688.cloudfront.net (CloudFront)",
+    "X-Amz-Cf-Id": "ITpLAXrxKWSSwKaYPm4ot2L4_QhXWZH5O51ZgWx3h-wq86wcNjUoVg==",
+    "X-Amzn-Trace-Id": "Root=1-59f78143-74bc6640097d12cf745fe313",
+    "x-customer-id": "d4148027-d528-4f63-b00b-c782022b5eb4",
+    "X-Forwarded-For": "174.79.36.104, 54.240.149.137",
+    "X-Forwarded-Port": "443",
+    "X-Forwarded-Proto": "https",
+    "x-serial-number": "C45200033"
+  },
+  "queryStringParameters": null,
+  "pathParameters": null,
+  "stageVariables": null,
+  "requestContext": {
+    "path": "/dev/files",
+    "accountId": "499155668448",
+    "resourceId": "arwtop",
+    "stage": "dev",
+    "requestId": "d55e826b-bdaa-11e7-8b5a-f701342c168e",
+    "identity": {
+      "cognitoIdentityPoolId": null,
+      "accountId": null,
+      "cognitoIdentityId": null,
+      "caller": null,
+      "apiKey": "",
+      "sourceIp": "174.79.36.104",
+      "accessKey": null,
+      "cognitoAuthenticationType": null,
+      "cognitoAuthenticationProvider": null,
+      "userArn": null,
+      "userAgent": "Paw/3.1.5 (Macintosh; OS X/10.13.0) GCDHTTPRequest",
+      "user": null
+    },
+    "resourcePath": "/files",
+    "httpMethod": "GET",
+    "apiId": "wfnusiwu5a"
+  },
+  "body": null,
+  "isBase64Encoded": false
+}
